@@ -3,13 +3,13 @@ import styles from './SignIn.style';
 import {TextInput} from 'react-native-paper';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {useSelector, useDispatch} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {addUsers} from '../../store/reducers/users';
+import axios from 'axios';
 
 const SignIn = () => {
   const navigation = useNavigation();
   const [isAlreadyAnAccount, setIsAlreadyAnAccount] = useState(false);
-  const {users} = useSelector(state => state.users);
   const dispatch = useDispatch();
 
   const [login, setLogin] = useState({
@@ -23,13 +23,27 @@ const SignIn = () => {
     Password: '',
   });
 
-  const validateUser = useCallback(() => {
-    users.map(u => {
-      if (login.Email === u.Email && login.Password === u.Password) {
-        navigation.navigate('Home');
-      }
-    });
-  }, [navigation, users, login.Email, login.Password]);
+  const validateUser = () => {
+    axios({
+      method: 'post',
+      url: 'http://localhost:4000/api/user/login',
+      withCredentials: true,
+      data: {
+        email: login.Email,
+        password: login.Password,
+      },
+    })
+      .then(res => {
+        if (res.data.errors) {
+          console.log(res.data.errors);
+        } else {
+          navigation.navigate('Home');
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
 
   const validPassword = useMemo(() => {
     return user.Password.length >= 6;
