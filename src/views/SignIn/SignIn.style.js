@@ -52,11 +52,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 40,
   },
-  image: {
-    width: 300,
-    height: 300,
-    marginBottom: 20,
-  },
 });
 
 export default styles;
