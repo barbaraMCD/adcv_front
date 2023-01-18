@@ -1,16 +1,13 @@
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import styles from './SignIn.style';
 import {TextInput} from 'react-native-paper';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {useDispatch} from 'react-redux';
-import {addUsers} from '../../store/reducers/users';
 import axios from 'axios';
 
 const SignIn = () => {
   const navigation = useNavigation();
   const [isAlreadyAnAccount, setIsAlreadyAnAccount] = useState(false);
-  const dispatch = useDispatch();
 
   const [login, setLogin] = useState({
     Email: '',
@@ -18,7 +15,8 @@ const SignIn = () => {
   });
 
   const [user, setUser] = useState({
-    id: Math.random(),
+    Firstname: '',
+    Lastname: '',
     Email: '',
     Password: '',
   });
@@ -26,7 +24,7 @@ const SignIn = () => {
   const validateUser = () => {
     axios({
       method: 'post',
-      url: 'http://localhost:4000/api/user/login',
+      url: 'http://localhost:4300/api/user/login',
       withCredentials: true,
       data: {
         email: login.Email,
@@ -49,12 +47,32 @@ const SignIn = () => {
     return user.Password.length >= 6;
   }, [user.Password]);
 
-  const validateForm = useCallback(() => {
+  const validateForm = () => {
     if (validPassword) {
-      dispatch(addUsers(user));
-      setIsAlreadyAnAccount(!isAlreadyAnAccount);
+      axios({
+        method: 'post',
+        url: 'http://localhost:4300/api/user/register',
+        withCredentials: true,
+        data: {
+          email: user.Email,
+          password: user.Password,
+          firstname: user.Firstname,
+          lastname: user.Lastname,
+        },
+      })
+        .then(res => {
+          if (res.data.errors) {
+            console.log(res.data.errors);
+          } else {
+            alert('inscription validée');
+            setIsAlreadyAnAccount(!isAlreadyAnAccount);
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
-  }, [validPassword, dispatch, user, isAlreadyAnAccount]);
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -89,6 +107,18 @@ const SignIn = () => {
           <>
             <Text style={styles.text}> Inscription </Text>
             <View style={styles.form}>
+              <Text style={styles.label}> firstname </Text>
+              <TextInput
+                value={user.Firstname}
+                onChangeText={value => setUser({...user, Firstname: value})}
+                style={styles.input}
+              />
+              <Text style={styles.label}> lastname </Text>
+              <TextInput
+                value={user.Lastname}
+                onChangeText={value => setUser({...user, Lastname: value})}
+                style={styles.input}
+              />
               <Text style={styles.label}> Email </Text>
               <TextInput
                 value={user.Email}
